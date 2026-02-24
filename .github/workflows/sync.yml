@@ -22,8 +22,7 @@ jobs:
       - name: Compare and update
         id: check
         run: |
-          mkdir -p list
-          if [ ! -f list/category-geoblock-ru ]; then
+          if [ ! -f list ]; then
             cp /tmp/remote-list list
             echo "changed=true" >> $GITHUB_OUTPUT
           elif ! diff -q /tmp/remote-list list > /dev/null; then
@@ -37,7 +36,7 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: 'chore: update category-geoblock-ru list'
+          commit-message: 'auto: update list'
           title: 'Auto-Sync from hydraponique/roscomvpn-geosite'
           branch: update-geoblock-list
           delete-branch: true
