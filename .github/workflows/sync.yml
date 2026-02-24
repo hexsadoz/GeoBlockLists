@@ -1,4 +1,4 @@
-name: Sync Geoblock List
+name: Auto-Sync from hydraponique/roscomvpn-geosite
 
 on:
   schedule:
@@ -24,10 +24,10 @@ jobs:
         run: |
           mkdir -p list
           if [ ! -f list/category-geoblock-ru ]; then
-            cp /tmp/remote-list list/category-geoblock-ru
+            cp /tmp/remote-list list
             echo "changed=true" >> $GITHUB_OUTPUT
-          elif ! diff -q /tmp/remote-list list/category-geoblock-ru > /dev/null; then
-            cp /tmp/remote-list list/category-geoblock-ru
+          elif ! diff -q /tmp/remote-list list > /dev/null; then
+            cp /tmp/remote-list list
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
@@ -38,11 +38,8 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: 'chore: update category-geoblock-ru list'
-          title: 'Update geoblock list from hydraponique/roscomvpn-geosite'
-          body: |
-            Автоматическое обновление списка блокировок.
-            Источник: https://github.com/hydraponique/roscomvpn-geosite/blob/master/data/category-geoblock-ru
+          title: 'Auto-Sync from hydraponique/roscomvpn-geosite'
           branch: update-geoblock-list
           delete-branch: true
           base: main
-          add-paths: list/category-geoblock-ru
+          add-paths: list
