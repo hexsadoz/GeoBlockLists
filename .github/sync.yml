@@ -1,3 +1,0 @@
-hydraponique/roscomvpn-geosite:
-  - source: /data/category-geoblock-ru
-    dest: /list
