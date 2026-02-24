@@ -1,16 +1,48 @@
-name: Sync External File
+name: Sync Geoblock List
+
 on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Sync File
-        uses: Redocly/repo-file-sync-action@main
+      - uses: actions/checkout@v4
+
+      - name: Download remote file
+        run: |
+          curl -sL https://raw.githubusercontent.com/hydraponique/roscomvpn-geosite/master/data/category-geoblock-ru -o /tmp/remote-list
+
+      - name: Compare and update
+        id: check
+        run: |
+          mkdir -p list
+          if [ ! -f list/category-geoblock-ru ]; then
+            cp /tmp/remote-list list/category-geoblock-ru
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif ! diff -q /tmp/remote-list list/category-geoblock-ru > /dev/null; then
+            cp /tmp/remote-list list/category-geoblock-ru
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
         with:
-          GH_PAT: ${{ secrets.GH_PAT }}
-          
+          commit-message: 'chore: update category-geoblock-ru list'
+          title: 'Update geoblock list from hydraponique/roscomvpn-geosite'
+          body: |
+            Автоматическое обновление списка блокировок.
+            Источник: https://github.com/hydraponique/roscomvpn-geosite/blob/master/data/category-geoblock-ru
+          branch: update-geoblock-list
+          delete-branch: true
+          base: main
+          add-paths: list/category-geoblock-ru
